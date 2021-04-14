@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+	<head> 
+		<meta charset="UTF-8">
+		<title> Conversor IPv6 </title>
+		<style>
+			.btn {width: 10%;}
+		</style>	
+		<script>
+// ********** Inicio da compactacao endereco IPv6					
+			function compactar(){
+				let dado;
+				let quartetos;
+				let compactado;
+				let nrZerosConsecutivos = 0;
+				
+				dado = document.getElementById("ipv6_expandido_entrada").value;
+				quartetos = dado.split(":");
+				
+				for (controle = 0; controle < 8; controle++){
+					quartetos[controle] = remove3ZerosEsquerda(quartetos[controle]);
+				}
+				
+				nrZerosConsecutivos = quatroPontos(quartetos);
+				compactado = quartetos.join(":");
+				
+				if (nrZerosConsecutivos == 1){
+					compactado = compactado.replace("*","0");
+				}else{
+					compactado = compactado.replace("*","");
+				}
+				
+				dado = compactado.charAt(0);
+				if(dado === ":"){
+					compactado = ":" + compactado;
+				}				
+				dado = compactado.charAt(compactado.length - 1);
+				if(dado === ":"){
+					compactado = compactado + ":";
+				}				
+				document.getElementById("ipv6_compactado_saida").value = compactado;
+			}
+			
+			function remove3ZerosEsquerda(quarteto){
+				let letra;
+				let controle = 0;
+				let contaZeros = 0;
+				
+				while(controle <= 2){
+					letra = quarteto.charAt(controle);
+					if (letra === "0"){
+						contaZeros ++; 
+					}else{
+						controle = 4;
+					}
+					controle ++;
+				}
+				quarteto = quarteto.substring(contaZeros);
+				return quarteto;
+			}
+
+// Escolhendo o lugar do quatro pontos.			
+			function quatroPontos(quartetos){
+				let controle = 0;
+				let zerado = 0;
+				let posInicial = 0;
+				let nrQuartetos = 0;
+				let quantidade;
+				const posIniciais=[];
+				const nrItens=[];
+				
+				while(controle < 8){
+					
+					if(quartetos[controle] === "0"){
+						posIniciais.push(controle);
+						nrItens.push(1);
+						controle ++;
+						controle = contaZerados(quartetos, nrItens, controle);					
+					}
+					controle ++;
+				}
+				
+				controle = 0;
+				if((nrItens.length - 1)== -1){
+					quantidade = 0;
+				}else{
+					quantidade = nrItens.length - 1;
+				}
+				
+				while (controle <= quantidade){
+					if (nrQuartetos < nrItens[controle]){
+						posInicial = posIniciais[controle];
+						nrQuartetos = nrItens[controle];
+					}
+					controle ++;
+				}
+
+				quartetos.splice(posInicial,nrQuartetos,"*");
+				if(quartetos.length == 9){
+					quartetos.shift();
+				}
+				console.log(quartetos);
+				// remove do array quartetos os quartetos comecando na posInicial, tantos nrQuartetos.
+				// No lugar deles insere um caractere *
+				// transforma o array quartetos em uma string com o separador :
+				// Substitui o caractere * por :
+
+				return nrQuartetos;
+			}
+			
+			function contaZerados(quartetos, nrItens, controle){
+			 let ctrl = 0;
+				let tamNrItens = nrItens.length;
+				ctrl = controle;
+				while (ctrl <= 8){
+					if(quartetos[ctrl] === "0"){
+						nrItens[tamNrItens - 1] ++;
+						ctrl ++;
+					}else{
+						controle = ctrl;
+						ctrl = 9;
+					}
+				}
+				return controle;
+			}	
+// ********** Fim da compactacao endereco IPv6	
+// ********** Inicio da descompactacao endereco IPv6					
+			function expandir(){
+				let dado;
+				let charInicio;
+				let charFim;
+				let quartetos;
+				let numeroDeQuartetos = 0;
+				let posicao4Pontos = -1;				
+				let insereZeros = 0;
+				let controle = 0;				
+				let remove4Pontos = -1;
+				let descompactado;
+				
+				dado = document.getElementById("ipv6_compactado_entrada").value;
+				charInicio = dado.charAt(0);
+				charFim = dado.charAt(dado.length - 1);
+				if (charInicio === ":"){
+				dado = dado.substring(1);
+				}
+				if (charFim === ":"){
+				dado = dado.slice(0, -1);
+				}
+				quartetos = dado.split(":");
+				numeroDeQuartetos = quartetos.length -1;
+				posicao4Pontos = encontra4Pontos(quartetos);
+				if(posicao4Pontos != -1){
+					insereZeros = 8 - numeroDeQuartetos;
+					while (controle < insereZeros){
+						quartetos.splice(posicao4Pontos,0,"0000");
+						controle++;
+					}
+					
+					remove4Pontos = posicao4Pontos + insereZeros;
+					quartetos.splice(remove4Pontos,1);
+				}
+				descompactado = quartetos.join(":");
+				document.getElementById("ipv6_expandido_saida").value = descompactado;
+			}
+			
+			function encontra4Pontos(quartetos){
+				let numeroDeQuartetos;
+				let quarteto;
+				let tamanhoQuarteto = 0;
+				let achou4pontos = -1;
+				let quantidadeDeZeros = 0;
+				
+				numeroDeQuartetos = quartetos.length;
+				
+				for(controle = 0; controle < numeroDeQuartetos; controle ++){
+					quarteto = quartetos[controle];
+					tamanhoQuarteto = quartetos[controle].length;
+				
+					if (quarteto === ""){
+						achou4pontos = controle;
+					}else{
+					 quantidadeDeZeros =	4 - tamanhoQuarteto;
+						quartetos[controle] =	'0'.repeat(quantidadeDeZeros) + quarteto;
+					}
+					
+				}
+				return achou4pontos;
+			}
+			
+// ********** Fim da descompactacao endereco IPv6		
+						
+			function apaga_campo(id_campo){
+				//document.getElementById(id_campo).value="";
+			}
+		</script>
+
+	</head>
+	<body>
+		<h1>Conversor IPv6</h1>
+		<br><br>
+		<form>
+			<input type="text" id="ipv6_expandido_entrada" onclick="apaga_campo('ipv6_expandido_entrada')"
+			size="43" value="FE00:0000:0000:0001:0000:0000:0000:0056">
+			<input id="botao" class="btn" type="button"  onclick="compactar()" value="Compactar">
+			<input type="text" id="ipv6_compactado_saida" size="43" value="resultado" readonly>
+			<br><br>			
+			<input type="text" id="ipv6_compactado_entrada" onclick="apaga_campo('ipv6_compactado_entrada')" 
+			size="43" value="FE00:0:0:1::56">			
+			<input id="botao" class="btn" type="button"  onclick="expandir()" value="Expandir">
+			<input type="text" id="ipv6_expandido_saida" size="43" value="resultado" readonly>
+			<br>
+			<br>
+			<input type="reset" onclick="" value="Reset">
+		</form>
+		</body>
+	</html>
+	
